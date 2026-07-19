@@ -1,4 +1,4 @@
-package com.example.open_control
+package com.albetdev.open_control
 
 import io.flutter.embedding.android.FlutterActivity
 
