@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:open_control/core/locator.dart';
+import 'package:open_control/core/router/app_router.dart';
+import 'package:open_control/core/theme/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await configureDependencies();
   runApp(const MainApp());
 }
 
@@ -9,12 +14,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp.router(
+      theme: buildAppTheme(),
+      routerConfig: appRouter,
     );
   }
 }
