@@ -15,6 +15,8 @@ class ConnectionForm {
   ])
   final String host;
 
-  @Validate<int>([Between(1, 65535, message: 'Port must be between 1 and 65535')])
+  @Validate<int>([
+    Between(1, 65535, message: 'Port must be between 1 and 65535'),
+  ])
   final int port;
 }
