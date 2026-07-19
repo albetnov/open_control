@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:open_control/core/router/routes.dart';
 import 'package:open_control/core/theme/app_theme_colors.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
 import 'package:open_control/presentation/connection/widgets/connection_list_item.dart';
@@ -22,6 +24,13 @@ class ConnectionScreen extends WatchingWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Could not connect: ${error.error}')),
         );
+      },
+    );
+
+    registerHandler(
+      select: (ConnectionManager m) => m.activeSession,
+      handler: (context, session, _) {
+        if (session != null) context.push(AppRoute.remote.path);
       },
     );
 

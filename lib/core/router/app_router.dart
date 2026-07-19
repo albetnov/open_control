@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:open_control/core/router/routes.dart';
 import 'package:open_control/presentation/connection/connection_screen.dart';
+import 'package:open_control/presentation/remote/remote_control_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: AppRoute.connection.path,
@@ -8,6 +9,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoute.connection.path,
       builder: (context, state) => const ConnectionScreen(),
+    ),
+    GoRoute(
+      path: AppRoute.remote.path,
+      builder: (context, state) => const RemoteControlScreen(),
     ),
   ],
 );
