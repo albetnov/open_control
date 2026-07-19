@@ -24,7 +24,11 @@ class ObsSocketClient {
     } catch (e) {
       throw ObsConnectionException('Could not connect to $host:$port: $e');
     } finally {
-      await channel.sink.close();
+      // Best-effort cleanup: don't await it. If the connection never actually
+      // opened (e.g. a firewall silently dropped it), closing it can hang
+      // just as long as connecting did, which would re-introduce the endless
+      // loading state the timeouts above are meant to prevent.
+      channel.sink.close().ignore();
     }
   }
 }
