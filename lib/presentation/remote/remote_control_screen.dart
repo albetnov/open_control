@@ -18,10 +18,18 @@ class RemoteControlScreen extends WatchingWidget {
     final activeConnection = connectionManager.lastConnected;
 
     final state = watchValue((RemoteControlManager m) => m.recordState);
-    final isStarting = watchValue((RemoteControlManager m) => m.startRecordCommand.isRunning);
-    final isStopping = watchValue((RemoteControlManager m) => m.stopRecordCommand.isRunning);
-    final isPausing = watchValue((RemoteControlManager m) => m.pauseCommand.isRunning);
-    final isResuming = watchValue((RemoteControlManager m) => m.resumeCommand.isRunning);
+    final isStarting = watchValue(
+      (RemoteControlManager m) => m.startRecordCommand.isRunning,
+    );
+    final isStopping = watchValue(
+      (RemoteControlManager m) => m.stopRecordCommand.isRunning,
+    );
+    final isPausing = watchValue(
+      (RemoteControlManager m) => m.pauseCommand.isRunning,
+    );
+    final isResuming = watchValue(
+      (RemoteControlManager m) => m.resumeCommand.isRunning,
+    );
     final isAddingChapter = watchValue(
       (RemoteControlManager m) => m.addChapterMarkerCommand.isRunning,
     );
@@ -69,9 +77,9 @@ class RemoteControlScreen extends WatchingWidget {
                       activeConnection == null
                           ? ''
                           : '${activeConnection.host}:${activeConnection.port}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: context.mutedColor,
+                      ),
                     ),
                   ),
                 ],

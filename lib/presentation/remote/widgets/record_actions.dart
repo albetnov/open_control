@@ -57,13 +57,18 @@ class _RecordActionsState extends State<RecordActions> {
         if (isIdle) ...[
           TextField(
             controller: _tagController,
-            decoration: const InputDecoration(labelText: 'Tag (optional)', hintText: 'e.g. ep12'),
+            decoration: const InputDecoration(
+              labelText: 'Tag (optional)',
+              hintText: 'e.g. ep12',
+            ),
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: widget.isStarting ? null : () => widget.onStart(_tagController.text),
+              onPressed: widget.isStarting
+                  ? null
+                  : () => widget.onStart(_tagController.text),
               child: widget.isStarting
                   ? const SizedBox(
                       width: 18,
@@ -102,7 +107,9 @@ class _RecordActionsState extends State<RecordActions> {
           TextField(
             controller: _chapterController,
             enabled: isRecording,
-            decoration: const InputDecoration(labelText: 'Chapter name (optional)'),
+            decoration: const InputDecoration(
+              labelText: 'Chapter name (optional)',
+            ),
           ),
           const SizedBox(height: 12),
           SizedBox(

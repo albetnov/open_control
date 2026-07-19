@@ -43,13 +43,16 @@ class ConnectionListItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(connection.label, style: Theme.of(context).textTheme.bodyLarge),
+                  Text(
+                    connection.label,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                   Text(
                     '${connection.host}:${connection.port}',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: context.mutedColor,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
+                      color: context.mutedColor,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ],
               ),
@@ -57,7 +60,9 @@ class ConnectionListItem extends StatelessWidget {
             if (connection.lastConnectedAt != null)
               Text(
                 formatRelativeTime(connection.lastConnectedAt!),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: context.mutedColor),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
               ),
             IconButton(
               onPressed: onRemove,

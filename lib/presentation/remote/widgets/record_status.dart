@@ -36,7 +36,8 @@ class _PulseDot extends StatefulWidget {
   State<_PulseDot> createState() => _PulseDotState();
 }
 
-class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixin {
+class _PulseDotState extends State<_PulseDot>
+    with SingleTickerProviderStateMixin {
   late final _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
@@ -91,7 +92,9 @@ class _PulseDotState extends State<_PulseDot> with SingleTickerProviderStateMixi
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: filled ? AppColors.amber : Colors.transparent,
-          border: filled ? null : Border.all(color: context.borderColor, width: 1.5),
+          border: filled
+              ? null
+              : Border.all(color: context.borderColor, width: 1.5),
         ),
       ),
     );

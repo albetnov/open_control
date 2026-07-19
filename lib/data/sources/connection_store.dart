@@ -10,7 +10,10 @@ class ConnectionStore {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_key) ?? const [];
     return raw
-        .map((json) => ObsConnection.fromJson(jsonDecode(json) as Map<String, dynamic>))
+        .map(
+          (json) =>
+              ObsConnection.fromJson(jsonDecode(json) as Map<String, dynamic>),
+        )
         .toList();
   }
 

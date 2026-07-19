@@ -65,19 +65,25 @@ class ObsWebSocketSession {
     try {
       await channel.ready.timeout(
         _timeout,
-        onTimeout: () => throw ObsConnectionException('Timed out connecting to $host:$port'),
+        onTimeout: () =>
+            throw ObsConnectionException('Timed out connecting to $host:$port'),
       );
       final helloData = await hello.future.timeout(
         _timeout,
-        onTimeout: () => throw ObsConnectionException('No response from $host:$port'),
+        onTimeout: () =>
+            throw ObsConnectionException('No response from $host:$port'),
       );
-      channel.sink.add(jsonEncode({
-        'op': 1,
-        'd': {'rpcVersion': helloData['rpcVersion']},
-      }));
+      channel.sink.add(
+        jsonEncode({
+          'op': 1,
+          'd': {'rpcVersion': helloData['rpcVersion']},
+        }),
+      );
       await identified.future.timeout(
         _timeout,
-        onTimeout: () => throw const ObsConnectionException('OBS did not identify the session'),
+        onTimeout: () => throw const ObsConnectionException(
+          'OBS did not identify the session',
+        ),
       );
     } catch (e) {
       await session._sub?.cancel();
@@ -91,19 +97,24 @@ class ObsWebSocketSession {
 
   /// Sends a Request (op 6) and awaits its RequestResponse (op 7).
   /// Throws [ObsConnectionException] on timeout or a non-successful result.
-  Future<Map<String, dynamic>> request(String type, [Map<String, dynamic>? data]) async {
+  Future<Map<String, dynamic>> request(
+    String type, [
+    Map<String, dynamic>? data,
+  ]) async {
     final requestId = (_requestCounter++).toString();
     final completer = Completer<Map<String, dynamic>>();
     _pending[requestId] = completer;
 
-    _channel.sink.add(jsonEncode({
-      'op': 6,
-      'd': {
-        'requestType': type,
-        'requestId': requestId,
-        'requestData': ?data,
-      },
-    }));
+    _channel.sink.add(
+      jsonEncode({
+        'op': 6,
+        'd': {
+          'requestType': type,
+          'requestId': requestId,
+          'requestData': ?data,
+        },
+      }),
+    );
 
     final response = await completer.future.timeout(
       _timeout,
@@ -115,7 +126,9 @@ class ObsWebSocketSession {
 
     final status = response['requestStatus'] as Map<String, dynamic>?;
     if (status == null || status['result'] != true) {
-      throw ObsConnectionException(status?['comment'] as String? ?? 'Request $type failed');
+      throw ObsConnectionException(
+        status?['comment'] as String? ?? 'Request $type failed',
+      );
     }
     return (response['responseData'] as Map<String, dynamic>?) ?? const {};
   }

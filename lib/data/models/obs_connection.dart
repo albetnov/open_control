@@ -11,7 +11,8 @@ class ObsConnection {
   final String label;
   final DateTime? lastConnectedAt;
 
-  bool sameTarget(ObsConnection other) => host == other.host && port == other.port;
+  bool sameTarget(ObsConnection other) =>
+      host == other.host && port == other.port;
 
   ObsConnection copyWith({DateTime? lastConnectedAt}) {
     return ObsConnection(
@@ -23,11 +24,11 @@ class ObsConnection {
   }
 
   Map<String, dynamic> toJson() => {
-        'host': host,
-        'port': port,
-        'label': label,
-        'lastConnectedAt': lastConnectedAt?.toIso8601String(),
-      };
+    'host': host,
+    'port': port,
+    'label': label,
+    'lastConnectedAt': lastConnectedAt?.toIso8601String(),
+  };
 
   factory ObsConnection.fromJson(Map<String, dynamic> json) {
     return ObsConnection(

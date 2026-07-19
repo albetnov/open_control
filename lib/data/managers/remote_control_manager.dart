@@ -34,7 +34,11 @@ class RemoteControlManager {
 
     _eventsSub = session.events
         .where((event) => event['eventType'] == 'RecordStateChanged')
-        .listen((event) => _applyOutputState((event['eventData'] as Map)['outputState'] as String?));
+        .listen(
+          (event) => _applyOutputState(
+            (event['eventData'] as Map)['outputState'] as String?,
+          ),
+        );
 
     session.request('GetRecordStatus').then((response) {
       final active = response['outputActive'] == true;
@@ -49,7 +53,8 @@ class RemoteControlManager {
     if (outputState == null) return;
     if (outputState.contains('PAUSED')) {
       recordState.value = RecordState.paused;
-    } else if (outputState.contains('STARTED') || outputState.contains('RESUMED')) {
+    } else if (outputState.contains('STARTED') ||
+        outputState.contains('RESUMED')) {
       recordState.value = RecordState.recording;
     } else if (outputState.contains('STOPPED')) {
       recordState.value = RecordState.idle;
@@ -64,38 +69,39 @@ class RemoteControlManager {
     return session;
   }
 
-  late final startRecordCommand = Command.createAsyncNoResult<String?>(
-    (tag) async {
-      final session = _requireSession();
-      final trimmedTag = tag?.trim();
-      if (trimmedTag == null || trimmedTag.isEmpty) {
-        await session.request('StartRecord');
-        return;
-      }
+  late final startRecordCommand = Command.createAsyncNoResult<String?>((
+    tag,
+  ) async {
+    final session = _requireSession();
+    final trimmedTag = tag?.trim();
+    if (trimmedTag == null || trimmedTag.isEmpty) {
+      await session.request('StartRecord');
+      return;
+    }
 
-      final original = (await session.request('GetProfileParameter', {
-        'parameterCategory': 'Output',
-        'parameterName': 'FilenameFormatting',
-      }))['parameterValue'] as String?;
+    final original =
+        (await session.request('GetProfileParameter', {
+              'parameterCategory': 'Output',
+              'parameterName': 'FilenameFormatting',
+            }))['parameterValue']
+            as String?;
 
+    await session.request('SetProfileParameter', {
+      'parameterCategory': 'Output',
+      'parameterName': 'FilenameFormatting',
+      'parameterValue': '$trimmedTag ${original ?? _defaultFilenamePattern}',
+    });
+
+    try {
+      await session.request('StartRecord');
+    } finally {
       await session.request('SetProfileParameter', {
         'parameterCategory': 'Output',
         'parameterName': 'FilenameFormatting',
-        'parameterValue': '$trimmedTag ${original ?? _defaultFilenamePattern}',
+        'parameterValue': original,
       });
-
-      try {
-        await session.request('StartRecord');
-      } finally {
-        await session.request('SetProfileParameter', {
-          'parameterCategory': 'Output',
-          'parameterName': 'FilenameFormatting',
-          'parameterValue': original,
-        });
-      }
-    },
-    errorFilter: const GlobalIfNoLocalErrorFilter(),
-  );
+    }
+  }, errorFilter: const GlobalIfNoLocalErrorFilter());
 
   late final stopRecordCommand = Command.createAsyncNoParamNoResult(
     () => _requireSession().request('StopRecord'),
@@ -112,14 +118,15 @@ class RemoteControlManager {
     errorFilter: const GlobalIfNoLocalErrorFilter(),
   );
 
-  late final addChapterMarkerCommand = Command.createAsyncNoResult<String?>(
-    (name) {
-      final trimmedName = name?.trim();
-      return _requireSession().request(
-        'CreateRecordChapter',
-        trimmedName == null || trimmedName.isEmpty ? null : {'chapterName': trimmedName},
-      );
-    },
-    errorFilter: const GlobalIfNoLocalErrorFilter(),
-  );
+  late final addChapterMarkerCommand = Command.createAsyncNoResult<String?>((
+    name,
+  ) {
+    final trimmedName = name?.trim();
+    return _requireSession().request(
+      'CreateRecordChapter',
+      trimmedName == null || trimmedName.isEmpty
+          ? null
+          : {'chapterName': trimmedName},
+    );
+  }, errorFilter: const GlobalIfNoLocalErrorFilter());
 }

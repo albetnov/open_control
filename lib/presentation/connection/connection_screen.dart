@@ -13,9 +13,15 @@ class ConnectionScreen extends WatchingWidget {
   @override
   Widget build(BuildContext context) {
     final manager = di<ConnectionManager>();
-    final savedConnections = watchValue((ConnectionManager m) => m.savedConnections);
-    final isConnecting = watchValue((ConnectionManager m) => m.connectCommand.isRunning);
-    final connectResult = watchValue((ConnectionManager m) => m.connectCommand.results);
+    final savedConnections = watchValue(
+      (ConnectionManager m) => m.savedConnections,
+    );
+    final isConnecting = watchValue(
+      (ConnectionManager m) => m.connectCommand.isRunning,
+    );
+    final connectResult = watchValue(
+      (ConnectionManager m) => m.connectCommand.results,
+    );
 
     registerHandler(
       select: (ConnectionManager m) => m.connectCommand.errors,
@@ -39,29 +45,38 @@ class ConnectionScreen extends WatchingWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
           children: [
-            Text('Open Control', style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              'Open Control',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 4),
             Text(
               'Connect to OBS on your local network.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
             ),
             const SizedBox(height: 28),
-            Text('New Connection', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 12),
-            NewConnectionForm(
-              defaultHost: manager.lastConnected?.host ?? '',
-              isConnecting: isConnecting,
-              onConnect: (connection) => manager.connectCommand(connection),
+            Text(
+              'New Connection',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
+            const SizedBox(height: 12),
+            NewConnectionForm(),
             const SizedBox(height: 36),
-            Text('Saved Connections', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Saved Connections',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
             if (savedConnections.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   'No saved connections yet. Connect once and it will show up here.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
                 ),
               )
             else
@@ -70,7 +85,8 @@ class ConnectionScreen extends WatchingWidget {
                 ConnectionListItem(
                   connection: connection,
                   isConnecting:
-                      isConnecting && connectResult.paramData?.sameTarget(connection) == true,
+                      isConnecting &&
+                      connectResult.paramData?.sameTarget(connection) == true,
                   onTap: () => manager.connectCommand(connection),
                   onRemove: () => manager.removeCommand(connection),
                 ),

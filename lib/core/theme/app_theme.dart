@@ -19,12 +19,10 @@ ThemeData buildAppTheme() {
     colorScheme: colorScheme,
     dividerColor: AppColors.divider,
     textTheme: ThemeData.dark().textTheme.apply(
-          bodyColor: AppColors.textBright,
-          displayColor: AppColors.textBright,
-        ),
-    listTileTheme: const ListTileThemeData(
-      textColor: AppColors.textBright,
+      bodyColor: AppColors.textBright,
+      displayColor: AppColors.textBright,
     ),
+    listTileTheme: const ListTileThemeData(textColor: AppColors.textBright),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.amber,

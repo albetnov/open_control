@@ -8,7 +8,9 @@ final di = GetIt.instance;
 Future<void> configureDependencies() async {
   di.registerLazySingleton<ConnectionStore>(ConnectionStore.new);
 
-  final connectionManager = await ConnectionManager(di<ConnectionStore>()).init();
+  final connectionManager = await ConnectionManager(
+    di<ConnectionStore>(),
+  ).init();
   di.registerSingleton<ConnectionManager>(connectionManager);
 
   di.registerLazySingleton<RemoteControlManager>(

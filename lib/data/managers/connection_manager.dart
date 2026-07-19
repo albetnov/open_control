@@ -10,7 +10,8 @@ class ConnectionManager {
   final ConnectionStore _store;
 
   final _savedConnections = ValueNotifier<List<ObsConnection>>(const []);
-  ValueListenable<List<ObsConnection>> get savedConnections => _savedConnections;
+  ValueListenable<List<ObsConnection>> get savedConnections =>
+      _savedConnections;
 
   final activeSession = ValueNotifier<ObsWebSocketSession?>(null);
 
@@ -18,28 +19,30 @@ class ConnectionManager {
   ObsConnection? get lastConnected =>
       _savedConnections.value.isEmpty ? null : _savedConnections.value.first;
 
-  late final connectCommand = Command.createAsyncNoResult<ObsConnection>(
-    (connection) async {
-      final session = await ObsWebSocketSession.connect(connection.host, connection.port);
-      activeSession.value?.close().ignore();
-      activeSession.value = session;
+  late final connectCommand = Command.createAsyncNoResult<ObsConnection>((
+    connection,
+  ) async {
+    final session = await ObsWebSocketSession.connect(
+      connection.host,
+      connection.port,
+    );
+    activeSession.value?.close().ignore();
+    activeSession.value = session;
 
-      final connected = connection.copyWith(lastConnectedAt: DateTime.now());
-      final rest = _savedConnections.value.where((c) => !c.sameTarget(connected));
-      _savedConnections.value = [connected, ...rest];
-      await _store.saveAll(_savedConnections.value);
-    },
-    errorFilter: const GlobalIfNoLocalErrorFilter(),
-  );
+    final connected = connection.copyWith(lastConnectedAt: DateTime.now());
+    final rest = _savedConnections.value.where((c) => !c.sameTarget(connected));
+    _savedConnections.value = [connected, ...rest];
+    await _store.saveAll(_savedConnections.value);
+  }, errorFilter: const GlobalIfNoLocalErrorFilter());
 
-  late final removeCommand = Command.createAsyncNoResult<ObsConnection>(
-    (connection) async {
-      _savedConnections.value =
-          _savedConnections.value.where((c) => !c.sameTarget(connection)).toList();
-      await _store.saveAll(_savedConnections.value);
-    },
-    errorFilter: const GlobalIfNoLocalErrorFilter(),
-  );
+  late final removeCommand = Command.createAsyncNoResult<ObsConnection>((
+    connection,
+  ) async {
+    _savedConnections.value = _savedConnections.value
+        .where((c) => !c.sameTarget(connection))
+        .toList();
+    await _store.saveAll(_savedConnections.value);
+  }, errorFilter: const GlobalIfNoLocalErrorFilter());
 
   Future<void> disconnect() async {
     await activeSession.value?.close();
