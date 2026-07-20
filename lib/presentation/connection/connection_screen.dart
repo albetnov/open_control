@@ -91,6 +91,13 @@ class ConnectionScreen extends WatchingWidget {
                   onRemove: () => manager.removeCommand(connection),
                 ),
               ],
+            const SizedBox(height: 24),
+            Center(
+              child: TextButton(
+                onPressed: manager.enterDemoMode,
+                child: const Text('Try demo mode'),
+              ),
+            ),
           ],
         ),
       ),

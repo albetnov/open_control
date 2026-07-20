@@ -4,13 +4,29 @@ import 'dart:convert';
 import 'package:open_control/data/exceptions.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+/// A live or fake connection to OBS, abstracted so managers can be handed
+/// either a real [_LiveObsWebSocketSession] or a demo-mode implementation.
+abstract class ObsWebSocketSession {
+  Stream<Map<String, dynamic>> get events;
+
+  Future<Map<String, dynamic>> request(
+    String type, [
+    Map<String, dynamic>? data,
+  ]);
+
+  Future<void> close();
+
+  static Future<ObsWebSocketSession> connect(String host, int port) =>
+      _LiveObsWebSocketSession._connect(host, port);
+}
+
 /// A persistent, fully-identified obs-websocket v5 session: performs the
 /// Hello -> Identify -> Identified handshake, then exposes typed
 /// request/response calls and a broadcast event stream for the session's
 /// lifetime. No authentication support — this app targets OBS instances
 /// with WebSocket auth disabled.
-class ObsWebSocketSession {
-  ObsWebSocketSession._(this._channel);
+class _LiveObsWebSocketSession implements ObsWebSocketSession {
+  _LiveObsWebSocketSession._(this._channel);
 
   static const _timeout = Duration(seconds: 5);
 
@@ -20,12 +36,16 @@ class ObsWebSocketSession {
   StreamSubscription<dynamic>? _sub;
   int _requestCounter = 0;
 
+  @override
   Stream<Map<String, dynamic>> get events => _events.stream;
 
-  static Future<ObsWebSocketSession> connect(String host, int port) async {
+  static Future<_LiveObsWebSocketSession> _connect(
+    String host,
+    int port,
+  ) async {
     final uri = Uri.parse('ws://$host:$port');
     final channel = WebSocketChannel.connect(uri);
-    final session = ObsWebSocketSession._(channel);
+    final session = _LiveObsWebSocketSession._(channel);
 
     final hello = Completer<Map<String, dynamic>>();
     final identified = Completer<void>();
@@ -97,6 +117,7 @@ class ObsWebSocketSession {
 
   /// Sends a Request (op 6) and awaits its RequestResponse (op 7).
   /// Throws [ObsConnectionException] on timeout or a non-successful result.
+  @override
   Future<Map<String, dynamic>> request(
     String type, [
     Map<String, dynamic>? data,
@@ -140,6 +161,7 @@ class ObsWebSocketSession {
     _pending.clear();
   }
 
+  @override
   Future<void> close() async {
     await _sub?.cancel();
     await _events.close();

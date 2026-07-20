@@ -74,7 +74,9 @@ class RemoteControlScreen extends WatchingWidget {
                   ),
                   Expanded(
                     child: Text(
-                      activeConnection == null
+                      connectionManager.isDemo
+                          ? 'Demo Mode'
+                          : activeConnection == null
                           ? ''
                           : '${activeConnection.host}:${activeConnection.port}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(

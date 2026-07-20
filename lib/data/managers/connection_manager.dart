@@ -2,6 +2,7 @@ import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_control/data/models/obs_connection.dart';
 import 'package:open_control/data/sources/connection_store.dart';
+import 'package:open_control/data/sources/demo_obs_websocket_session.dart';
 import 'package:open_control/data/sources/obs_websocket_session.dart';
 
 class ConnectionManager {
@@ -18,6 +19,13 @@ class ConnectionManager {
   /// The most recently connected host, used to smart-default the new-connection form.
   ObsConnection? get lastConnected =>
       _savedConnections.value.isEmpty ? null : _savedConnections.value.first;
+
+  bool get isDemo => activeSession.value is DemoObsWebSocketSession;
+
+  void enterDemoMode() {
+    activeSession.value?.close().ignore();
+    activeSession.value = DemoObsWebSocketSession();
+  }
 
   late final connectCommand = Command.createAsyncNoResult<ObsConnection>((
     connection,
