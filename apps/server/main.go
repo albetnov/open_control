@@ -5,10 +5,14 @@ import (
 
 	websocket "github.com/gofiber/contrib/v3/websocket"
 	fiber "github.com/gofiber/fiber/v3"
+
+	"open_control_server/providers/obs"
 )
 
 func setupApp() *fiber.App {
 	app := fiber.New()
+
+	obs.NewSession("ws://localhost:4455", app)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("SERPER HEALTHYYY WOI")

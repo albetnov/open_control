@@ -39,6 +39,19 @@ func (c *WebsocketClient) Close() error {
 	return c.conn.Close()
 }
 
+func (c *WebsocketClient) SendMessage(v any) error {
+	msg, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Errorf("error marshaling message: %w", err)
+	}
+
+	if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+		return fmt.Errorf("error sending message: %w", err)
+	}
+
+	return nil
+}
+
 type WebsocketResponse struct {
 	MsgType int
 	Msg     []byte
