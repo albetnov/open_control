@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:open_control/core/router/routes.dart';
 import 'package:open_control/core/theme/app_theme_colors.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
+import 'package:open_control/data/managers/discovery_manager.dart';
 import 'package:open_control/presentation/connection/widgets/connection_list_item.dart';
 import 'package:open_control/presentation/connection/widgets/new_connection_form.dart';
 import 'package:watch_it/watch_it.dart';
@@ -21,6 +22,15 @@ class ConnectionScreen extends WatchingWidget {
     );
     final connectResult = watchValue(
       (ConnectionManager m) => m.connectCommand.results,
+    );
+
+    callOnce(
+      (_) => di<DiscoveryManager>().start(),
+      dispose: () => di<DiscoveryManager>().stop(),
+    );
+    final discovered = watchValue((DiscoveryManager m) => m.discovered);
+    final discoveredOnly = discovered.where(
+      (d) => !savedConnections.any((s) => s.sameTarget(d)),
     );
 
     registerHandler(
@@ -56,6 +66,24 @@ class ConnectionScreen extends WatchingWidget {
                 context,
               ).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
             ),
+            if (discoveredOnly.isNotEmpty) ...[
+              const SizedBox(height: 28),
+              Text(
+                'Discovered on Network',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              for (final (index, connection) in discoveredOnly.indexed) ...[
+                if (index > 0) Divider(height: 1, color: context.borderColor),
+                ConnectionListItem(
+                  connection: connection,
+                  isConnecting:
+                      isConnecting &&
+                      connectResult.paramData?.sameTarget(connection) == true,
+                  onTap: () => manager.connectCommand(connection),
+                ),
+              ],
+            ],
             const SizedBox(height: 28),
             Text(
               'New Connection',

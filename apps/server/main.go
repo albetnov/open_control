@@ -1,19 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	websocket "github.com/gofiber/contrib/v3/websocket"
 	fiber "github.com/gofiber/fiber/v3"
 
+	"open_control_server/providers/mdns"
 	"open_control_server/providers/obs"
 )
+
+const httpPort = 8888
 
 func setupApp() *fiber.App {
 	app := fiber.New()
 
 	session := obs.NewSession("ws://localhost:4455", app)
 	obs.RegisterRoutes(app, session)
+
+	mdns.Advertise(app, httpPort)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("SERPER HEALTHYYY WOI")
@@ -39,5 +45,5 @@ func setupApp() *fiber.App {
 func main() {
 	app := setupApp()
 
-	log.Fatal(app.Listen(":8888"))
+	log.Fatal(app.Listen(fmt.Sprintf(":%d", httpPort)))
 }

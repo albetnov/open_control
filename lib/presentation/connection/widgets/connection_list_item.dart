@@ -9,14 +9,14 @@ class ConnectionListItem extends StatelessWidget {
     required this.connection,
     required this.isConnecting,
     required this.onTap,
-    required this.onRemove,
+    this.onRemove,
     super.key,
   });
 
   final ObsConnection connection;
   final bool isConnecting;
   final VoidCallback onTap;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -64,12 +64,13 @@ class ConnectionListItem extends StatelessWidget {
                   context,
                 ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
               ),
-            IconButton(
-              onPressed: onRemove,
-              icon: const Icon(Icons.close, size: 18),
-              color: context.mutedColor,
-              tooltip: 'Remove',
-            ),
+            if (onRemove != null)
+              IconButton(
+                onPressed: onRemove,
+                icon: const Icon(Icons.close, size: 18),
+                color: context.mutedColor,
+                tooltip: 'Remove',
+              ),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
+import 'package:open_control/data/managers/discovery_manager.dart';
 import 'package:open_control/data/managers/remote_control_manager.dart';
 import 'package:open_control/data/sources/connection_store.dart';
 
@@ -16,4 +17,6 @@ Future<void> configureDependencies() async {
   di.registerLazySingleton<RemoteControlManager>(
     () => RemoteControlManager(di<ConnectionManager>())..init(),
   );
+
+  di.registerLazySingleton<DiscoveryManager>(DiscoveryManager.new);
 }
