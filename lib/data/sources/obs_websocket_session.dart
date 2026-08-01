@@ -23,8 +23,9 @@ abstract class ObsWebSocketSession {
 /// A persistent, fully-identified obs-websocket v5 session: performs the
 /// Hello -> Identify -> Identified handshake, then exposes typed
 /// request/response calls and a broadcast event stream for the session's
-/// lifetime. No authentication support — this app targets OBS instances
-/// with WebSocket auth disabled.
+/// lifetime. Connects through the Open Control server's relay, not straight
+/// to OBS — the relay injects OBS's websocket password server-side when one
+/// is configured, so this client never sends or needs to know about it.
 class _LiveObsWebSocketSession implements ObsWebSocketSession {
   _LiveObsWebSocketSession._(this._channel);
 
@@ -43,7 +44,7 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
     String host,
     int port,
   ) async {
-    final uri = Uri.parse('ws://$host:$port');
+    final uri = Uri.parse('ws://$host:$port/obs/ws');
     final channel = WebSocketChannel.connect(uri);
     final session = _LiveObsWebSocketSession._(channel);
 

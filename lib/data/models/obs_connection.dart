@@ -1,7 +1,7 @@
 class ObsConnection {
   ObsConnection({
     required this.host,
-    this.port = 4455,
+    this.port = 8888,
     String? label,
     this.lastConnectedAt,
   }) : label = label ?? host;

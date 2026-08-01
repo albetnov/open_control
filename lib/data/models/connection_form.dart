@@ -5,7 +5,7 @@ part 'connection_form.g.dart';
 
 @ValidateClass()
 class ConnectionForm {
-  const ConnectionForm({required this.host, this.port = 4455});
+  const ConnectionForm({required this.host, this.port = 8888});
 
   @Validate<String>([
     Regex(

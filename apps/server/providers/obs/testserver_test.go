@@ -10,25 +10,40 @@ import (
 )
 
 // newFakeObsServer starts an in-process websocket server that speaks just
-// enough of the obs-websocket protocol to test session/command logic without
-// a live OBS instance: it completes Hello -> Identify -> Identified, then
-// replies to Request frames with a scripted RequestResponse looked up by
-// requestType in responses (result:false if the type wasn't scripted).
+// enough of the obs-websocket protocol to test proxy logic without a live OBS
+// instance: it completes Hello -> Identify -> Identified, then replies to
+// Request frames with a scripted RequestResponse looked up by requestType in
+// responses (result:false if the type wasn't scripted).
 func newFakeObsServer(t *testing.T, responses map[string]map[string]any) string {
 	t.Helper()
-	return newFakeObsServerImpl(t, responses, false)
+	return newFakeObsServerImpl(t, responses, false, nil)
 }
 
 // newFakeObsServerWithStrayFrame behaves like newFakeObsServer, but writes one
 // unsolicited op-5-style frame immediately before the first Request's
-// RequestResponse, to test that awaitResponse skips frames that aren't the
-// response it's waiting for.
+// RequestResponse, to test that a reader tolerates frames it isn't expecting.
 func newFakeObsServerWithStrayFrame(t *testing.T, responses map[string]map[string]any) string {
 	t.Helper()
-	return newFakeObsServerImpl(t, responses, true)
+	return newFakeObsServerImpl(t, responses, true, nil)
 }
 
-func newFakeObsServerImpl(t *testing.T, responses map[string]map[string]any, injectStrayFrame bool) string {
+// fakeObsAuth configures a fake OBS server to require password auth: its
+// Hello carries {salt, challenge}, and it only replies Identified if the
+// Identify it receives carries the matching computed authentication string.
+type fakeObsAuth struct {
+	password  string
+	salt      string
+	challenge string
+}
+
+// newFakeObsServerWithAuth behaves like newFakeObsServer, but requires the
+// auth handshake described by auth.
+func newFakeObsServerWithAuth(t *testing.T, auth fakeObsAuth, responses map[string]map[string]any) string {
+	t.Helper()
+	return newFakeObsServerImpl(t, responses, false, &auth)
+}
+
+func newFakeObsServerImpl(t *testing.T, responses map[string]map[string]any, injectStrayFrame bool, auth *fakeObsAuth) string {
 	t.Helper()
 
 	app := fiber.New()
@@ -39,11 +54,18 @@ func newFakeObsServerImpl(t *testing.T, responses map[string]map[string]any, inj
 		}
 		return fiber.ErrUpgradeRequired
 	}, websocket.New(func(c *websocket.Conn) {
-		if err := c.WriteJSON(&ObsOpcode{Op: 0, D: map[string]any{
+		helloData := map[string]any{
 			"obsStudioVersion":    "30.0.0",
 			"obsWebSocketVersion": "5.0.0",
 			"rpcVersion":          1,
-		}}); err != nil {
+		}
+		if auth != nil {
+			helloData["authentication"] = map[string]any{
+				"salt":      auth.salt,
+				"challenge": auth.challenge,
+			}
+		}
+		if err := c.WriteJSON(&ObsOpcode{Op: 0, D: helloData}); err != nil {
 			return
 		}
 
@@ -55,6 +77,13 @@ func newFakeObsServerImpl(t *testing.T, responses map[string]map[string]any, inj
 
 			switch raw.Op {
 			case 1: // Identify
+				if auth != nil {
+					want := computeAuthResponse(auth.password, auth.salt, auth.challenge)
+					got, _ := raw.D["authentication"].(string)
+					if got != want {
+						return // real OBS would close with an auth-failure code
+					}
+				}
 				if err := c.WriteJSON(&ObsOpcode{Op: 2, D: map[string]any{
 					"negotiatedRpcVersion": 1,
 				}}); err != nil {

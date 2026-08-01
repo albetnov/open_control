@@ -9,6 +9,7 @@ import (
 
 	"open_control_server/providers/mdns"
 	"open_control_server/providers/obs"
+	"open_control_server/providers/settings"
 )
 
 const httpPort = 8888
@@ -16,8 +17,13 @@ const httpPort = 8888
 func setupApp() *fiber.App {
 	app := fiber.New()
 
-	session := obs.NewSession("ws://localhost:4455", app)
-	obs.RegisterRoutes(app, session)
+	settingsStore, err := settings.NewStore()
+	if err != nil {
+		log.Println("settings: could not load, starting with defaults:", err)
+	}
+	settings.RegisterRoutes(app, settingsStore)
+
+	obs.RegisterProxyRoute(app, "ws://localhost:4455", settingsStore)
 
 	mdns.Advertise(app, httpPort)
 
