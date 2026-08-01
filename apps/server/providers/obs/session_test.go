@@ -7,9 +7,10 @@ import (
 )
 
 func TestIdentify(t *testing.T) {
-	// TODO: Use a mock WebSocket server for testing instead of connecting to a real server.
+	url := newFakeObsServer(t, nil)
+
 	app := fiber.New()
-	session := NewSession("ws://localhost:4455", app)
+	session := NewSession(url, app)
 
 	if err := session.Identify(); err != nil {
 		t.Fatal(err)

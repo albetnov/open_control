@@ -12,7 +12,8 @@ import (
 func setupApp() *fiber.App {
 	app := fiber.New()
 
-	obs.NewSession("ws://localhost:4455", app)
+	session := obs.NewSession("ws://localhost:4455", app)
+	obs.RegisterRoutes(app, session)
 
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.SendString("SERPER HEALTHYYY WOI")
