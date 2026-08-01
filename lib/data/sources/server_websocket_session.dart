@@ -5,8 +5,8 @@ import 'package:open_control/data/exceptions.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// A live or fake connection to OBS, abstracted so managers can be handed
-/// either a real [_LiveObsWebSocketSession] or a demo-mode implementation.
-abstract class ObsWebSocketSession {
+/// either a real [_LiveServerWebSocketSession] or a demo-mode implementation.
+abstract class ServerWebSocketSession {
   Stream<Map<String, dynamic>> get events;
 
   Future<Map<String, dynamic>> request(
@@ -16,8 +16,8 @@ abstract class ObsWebSocketSession {
 
   Future<void> close();
 
-  static Future<ObsWebSocketSession> connect(String host, int port) =>
-      _LiveObsWebSocketSession._connect(host, port);
+  static Future<ServerWebSocketSession> connect(String host, int port) =>
+      _LiveServerWebSocketSession._connect(host, port);
 }
 
 /// A persistent, fully-identified obs-websocket v5 session: performs the
@@ -26,8 +26,8 @@ abstract class ObsWebSocketSession {
 /// lifetime. Connects through the Open Control server's relay, not straight
 /// to OBS — the relay injects OBS's websocket password server-side when one
 /// is configured, so this client never sends or needs to know about it.
-class _LiveObsWebSocketSession implements ObsWebSocketSession {
-  _LiveObsWebSocketSession._(this._channel);
+class _LiveServerWebSocketSession implements ServerWebSocketSession {
+  _LiveServerWebSocketSession._(this._channel);
 
   static const _timeout = Duration(seconds: 5);
 
@@ -40,13 +40,13 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
   @override
   Stream<Map<String, dynamic>> get events => _events.stream;
 
-  static Future<_LiveObsWebSocketSession> _connect(
+  static Future<_LiveServerWebSocketSession> _connect(
     String host,
     int port,
   ) async {
     final uri = Uri.parse('ws://$host:$port/obs/ws');
     final channel = WebSocketChannel.connect(uri);
-    final session = _LiveObsWebSocketSession._(channel);
+    final session = _LiveServerWebSocketSession._(channel);
 
     final hello = Completer<Map<String, dynamic>>();
     final identified = Completer<void>();
@@ -72,12 +72,12 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
         }
       },
       onError: (Object e) {
-        final error = ObsConnectionException('Connection error: $e');
+        final error = ServerConnectionException('Connection error: $e');
         session._failPending(error);
         failHandshake(error);
       },
       onDone: () {
-        const error = ObsConnectionException('Connection closed');
+        const error = ServerConnectionException('Connection closed');
         session._failPending(error);
         failHandshake(error);
       },
@@ -87,12 +87,12 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
       await channel.ready.timeout(
         _timeout,
         onTimeout: () =>
-            throw ObsConnectionException('Timed out connecting to $host:$port'),
+            throw ServerConnectionException('Timed out connecting to $host:$port'),
       );
       final helloData = await hello.future.timeout(
         _timeout,
         onTimeout: () =>
-            throw ObsConnectionException('No response from $host:$port'),
+            throw ServerConnectionException('No response from $host:$port'),
       );
       channel.sink.add(
         jsonEncode({
@@ -102,22 +102,22 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
       );
       await identified.future.timeout(
         _timeout,
-        onTimeout: () => throw const ObsConnectionException(
+        onTimeout: () => throw const ServerConnectionException(
           'OBS did not identify the session',
         ),
       );
     } catch (e) {
       await session._sub?.cancel();
       channel.sink.close().ignore();
-      if (e is ObsConnectionException) rethrow;
-      throw ObsConnectionException('Could not connect to $host:$port: $e');
+      if (e is ServerConnectionException) rethrow;
+      throw ServerConnectionException('Could not connect to $host:$port: $e');
     }
 
     return session;
   }
 
   /// Sends a Request (op 6) and awaits its RequestResponse (op 7).
-  /// Throws [ObsConnectionException] on timeout or a non-successful result.
+  /// Throws [ServerConnectionException] on timeout or a non-successful result.
   @override
   Future<Map<String, dynamic>> request(
     String type, [
@@ -142,13 +142,13 @@ class _LiveObsWebSocketSession implements ObsWebSocketSession {
       _timeout,
       onTimeout: () {
         _pending.remove(requestId);
-        throw ObsConnectionException('Timed out waiting for $type response');
+        throw ServerConnectionException('Timed out waiting for $type response');
       },
     );
 
     final status = response['requestStatus'] as Map<String, dynamic>?;
     if (status == null || status['result'] != true) {
-      throw ObsConnectionException(
+      throw ServerConnectionException(
         status?['comment'] as String? ?? 'Request $type failed',
       );
     }

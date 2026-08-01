@@ -4,7 +4,7 @@ import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
 import 'package:open_control/data/exceptions.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
-import 'package:open_control/data/sources/obs_websocket_session.dart';
+import 'package:open_control/data/sources/server_websocket_session.dart';
 
 enum RecordState { unknown, idle, recording, paused }
 
@@ -63,9 +63,9 @@ class RemoteControlManager {
     // already communicates the in-flight transition.
   }
 
-  ObsWebSocketSession _requireSession() {
+  ServerWebSocketSession _requireSession() {
     final session = _connectionManager.activeSession.value;
-    if (session == null) throw const ObsConnectionException('Not connected');
+    if (session == null) throw const ServerConnectionException('Not connected');
     return session;
   }
 

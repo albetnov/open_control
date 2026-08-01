@@ -1,5 +1,5 @@
-class ObsConnectionException implements Exception {
-  const ObsConnectionException(this.message);
+class ServerConnectionException implements Exception {
+  const ServerConnectionException(this.message);
 
   final String message;
 

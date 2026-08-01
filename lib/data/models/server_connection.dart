@@ -1,5 +1,5 @@
-class ObsConnection {
-  ObsConnection({
+class ServerConnection {
+  ServerConnection({
     required this.host,
     this.port = 8888,
     String? label,
@@ -11,11 +11,11 @@ class ObsConnection {
   final String label;
   final DateTime? lastConnectedAt;
 
-  bool sameTarget(ObsConnection other) =>
+  bool sameTarget(ServerConnection other) =>
       host == other.host && port == other.port;
 
-  ObsConnection copyWith({DateTime? lastConnectedAt}) {
-    return ObsConnection(
+  ServerConnection copyWith({DateTime? lastConnectedAt}) {
+    return ServerConnection(
       host: host,
       port: port,
       label: label,
@@ -30,8 +30,8 @@ class ObsConnection {
     'lastConnectedAt': lastConnectedAt?.toIso8601String(),
   };
 
-  factory ObsConnection.fromJson(Map<String, dynamic> json) {
-    return ObsConnection(
+  factory ServerConnection.fromJson(Map<String, dynamic> json) {
+    return ServerConnection(
       host: json['host'] as String,
       port: json['port'] as int,
       label: json['label'] as String?,

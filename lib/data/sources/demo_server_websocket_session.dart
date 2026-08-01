@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:open_control/data/sources/obs_websocket_session.dart';
+import 'package:open_control/data/sources/server_websocket_session.dart';
 
-/// An in-memory stand-in for [ObsWebSocketSession] that answers the exact
+/// An in-memory stand-in for [ServerWebSocketSession] that answers the exact
 /// request types [RemoteControlManager] sends, with no network involved.
-class DemoObsWebSocketSession implements ObsWebSocketSession {
+class DemoServerWebSocketSession implements ServerWebSocketSession {
   final _events = StreamController<Map<String, dynamic>>.broadcast();
   bool _recording = false;
   bool _paused = false;

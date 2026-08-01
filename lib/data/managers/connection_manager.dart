@@ -1,36 +1,36 @@
 import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
-import 'package:open_control/data/models/obs_connection.dart';
+import 'package:open_control/data/models/server_connection.dart';
 import 'package:open_control/data/sources/connection_store.dart';
-import 'package:open_control/data/sources/demo_obs_websocket_session.dart';
-import 'package:open_control/data/sources/obs_websocket_session.dart';
+import 'package:open_control/data/sources/demo_server_websocket_session.dart';
+import 'package:open_control/data/sources/server_websocket_session.dart';
 
 class ConnectionManager {
   ConnectionManager(this._store);
 
   final ConnectionStore _store;
 
-  final _savedConnections = ValueNotifier<List<ObsConnection>>(const []);
-  ValueListenable<List<ObsConnection>> get savedConnections =>
+  final _savedConnections = ValueNotifier<List<ServerConnection>>(const []);
+  ValueListenable<List<ServerConnection>> get savedConnections =>
       _savedConnections;
 
-  final activeSession = ValueNotifier<ObsWebSocketSession?>(null);
+  final activeSession = ValueNotifier<ServerWebSocketSession?>(null);
 
   /// The most recently connected host, used to smart-default the new-connection form.
-  ObsConnection? get lastConnected =>
+  ServerConnection? get lastConnected =>
       _savedConnections.value.isEmpty ? null : _savedConnections.value.first;
 
-  bool get isDemo => activeSession.value is DemoObsWebSocketSession;
+  bool get isDemo => activeSession.value is DemoServerWebSocketSession;
 
   void enterDemoMode() {
     activeSession.value?.close().ignore();
-    activeSession.value = DemoObsWebSocketSession();
+    activeSession.value = DemoServerWebSocketSession();
   }
 
-  late final connectCommand = Command.createAsyncNoResult<ObsConnection>((
+  late final connectCommand = Command.createAsyncNoResult<ServerConnection>((
     connection,
   ) async {
-    final session = await ObsWebSocketSession.connect(
+    final session = await ServerWebSocketSession.connect(
       connection.host,
       connection.port,
     );
@@ -43,7 +43,7 @@ class ConnectionManager {
     await _store.saveAll(_savedConnections.value);
   }, errorFilter: const GlobalIfNoLocalErrorFilter());
 
-  late final removeCommand = Command.createAsyncNoResult<ObsConnection>((
+  late final removeCommand = Command.createAsyncNoResult<ServerConnection>((
     connection,
   ) async {
     _savedConnections.value = _savedConnections.value

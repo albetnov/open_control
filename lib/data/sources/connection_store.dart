@@ -1,23 +1,23 @@
 import 'dart:convert';
 
-import 'package:open_control/data/models/obs_connection.dart';
+import 'package:open_control/data/models/server_connection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ConnectionStore {
   static const _key = 'saved_connections';
 
-  Future<List<ObsConnection>> getSaved() async {
+  Future<List<ServerConnection>> getSaved() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_key) ?? const [];
     return raw
         .map(
           (json) =>
-              ObsConnection.fromJson(jsonDecode(json) as Map<String, dynamic>),
+              ServerConnection.fromJson(jsonDecode(json) as Map<String, dynamic>),
         )
         .toList();
   }
 
-  Future<void> saveAll(List<ObsConnection> connections) async {
+  Future<void> saveAll(List<ServerConnection> connections) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       _key,

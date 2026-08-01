@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
-import 'package:open_control/data/models/obs_connection.dart';
+import 'package:open_control/data/models/server_connection.dart';
 
 /// Must match the server's advertised mDNS/DNS-SD service type exactly.
 const _serviceType = '_open-control._tcp';
@@ -25,8 +25,8 @@ class DiscoveryManager {
   BonsoirDiscovery? _discovery;
   StreamSubscription<BonsoirDiscoveryEvent>? _subscription;
 
-  final _discovered = ValueNotifier<List<ObsConnection>>(const []);
-  ValueListenable<List<ObsConnection>> get discovered => _discovered;
+  final _discovered = ValueNotifier<List<ServerConnection>>(const []);
+  ValueListenable<List<ServerConnection>> get discovered => _discovered;
 
   Future<void> start() async {
     final discovery = BonsoirDiscovery(type: _serviceType);
@@ -63,7 +63,7 @@ class DiscoveryManager {
     final host = pickHostAddress(service.hostAddresses);
     if (host == null) return;
 
-    final connection = ObsConnection(
+    final connection = ServerConnection(
       host: host,
       port: service.port,
       label: service.name,

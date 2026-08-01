@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:open_control/core/theme/app_colors.dart';
 import 'package:open_control/core/theme/app_theme_colors.dart';
 import 'package:open_control/core/utils.dart';
-import 'package:open_control/data/models/obs_connection.dart';
+import 'package:open_control/data/models/server_connection.dart';
 
 class ConnectionListItem extends StatelessWidget {
   const ConnectionListItem({
@@ -13,7 +13,7 @@ class ConnectionListItem extends StatelessWidget {
     super.key,
   });
 
-  final ObsConnection connection;
+  final ServerConnection connection;
   final bool isConnecting;
   final VoidCallback onTap;
   final VoidCallback? onRemove;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_it/flutter_it.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
 import 'package:open_control/data/models/connection_form.dart';
-import 'package:open_control/data/models/obs_connection.dart';
+import 'package:open_control/data/models/server_connection.dart';
 import 'package:validasi_ui/validasi_ui.dart';
 
 class NewConnectionForm extends WatchingWidget {
@@ -73,7 +73,7 @@ class NewConnectionForm extends WatchingWidget {
                     ? null
                     : submit(
                         (form) => manager.connectCommand(
-                          ObsConnection(host: form.host, port: form.port),
+                          ServerConnection(host: form.host, port: form.port),
                         ),
                       ),
                 child: isConnecting
