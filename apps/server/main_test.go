@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
+	fiber "github.com/gofiber/fiber/v3"
 )
 
 func TestHealthRoute(t *testing.T) {
@@ -52,28 +53,13 @@ func TestWsRouteRequiresUpgrade(t *testing.T) {
 	}
 }
 
-func TestWsRouteAcceptsUpgrade(t *testing.T) {
-	app := setupApp()
-
-	req := httptest.NewRequest(http.MethodGet, "/ws", nil)
-	req.Header.Set("Connection", "Upgrade")
-	req.Header.Set("Upgrade", "websocket")
-	req.Header.Set("Sec-WebSocket-Version", "13")
-	req.Header.Set("Sec-WebSocket-Key", "dGhlIHNhbXBsZSBub25jZQ==")
-
-	resp, err := app.Test(req)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusSwitchingProtocols {
-		t.Fatalf("expected status %d, got %d", http.StatusSwitchingProtocols, resp.StatusCode)
-	}
-}
-
-func TestWsSendsTestMessage(t *testing.T) {
-	app := setupApp()
+// dialWs serves app on a real listener and dials it with a real websocket
+// client. A hijacked/upgraded connection keeps its serving goroutine alive
+// past the handshake, which races with app.Test()'s in-memory fake-conn
+// harness (its response reader and the handler's post-upgrade writes touch
+// the same unsynchronized buffer) - a real socket has no such race.
+func dialWs(t *testing.T, app *fiber.App, path string) (*websocket.Conn, *http.Response) {
+	t.Helper()
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -83,15 +69,16 @@ func TestWsSendsTestMessage(t *testing.T) {
 	go func() {
 		_ = app.Listener(ln)
 	}()
-	defer func() {
+	t.Cleanup(func() {
 		_ = app.ShutdownWithContext(context.Background())
-	}()
+	})
 
-	url := "ws://" + ln.Addr().String() + "/ws"
+	url := "ws://" + ln.Addr().String() + path
 
 	var conn *websocket.Conn
+	var resp *http.Response
 	for i := 0; i < 20; i++ {
-		conn, _, err = websocket.DefaultDialer.Dial(url, nil)
+		conn, resp, err = websocket.DefaultDialer.Dial(url, nil)
 		if err == nil {
 			break
 		}
@@ -100,6 +87,25 @@ func TestWsSendsTestMessage(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to dial websocket: %v", err)
 	}
+
+	return conn, resp
+}
+
+func TestWsRouteAcceptsUpgrade(t *testing.T) {
+	app := setupApp()
+
+	conn, resp := dialWs(t, app, "/ws")
+	defer conn.Close()
+
+	if resp.StatusCode != http.StatusSwitchingProtocols {
+		t.Fatalf("expected status %d, got %d", http.StatusSwitchingProtocols, resp.StatusCode)
+	}
+}
+
+func TestWsSendsTestMessage(t *testing.T) {
+	app := setupApp()
+
+	conn, _ := dialWs(t, app, "/ws")
 	defer conn.Close()
 
 	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
