@@ -1,6 +1,7 @@
 import 'package:command_it/command_it.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:open_control/core/router/routes.dart';
 import 'package:open_control/core/theme/app_theme_colors.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
 import 'package:open_control/data/managers/remote_control_manager.dart';
@@ -83,6 +84,11 @@ class RemoteControlScreen extends WatchingWidget {
                         color: context.mutedColor,
                       ),
                     ),
+                  ),
+                  IconButton(
+                    onPressed: () => context.push(AppRoute.files.path),
+                    icon: const Icon(Icons.folder_outlined),
+                    tooltip: 'Files',
                   ),
                 ],
               ),

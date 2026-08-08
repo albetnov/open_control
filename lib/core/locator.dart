@@ -4,6 +4,7 @@ import 'package:open_control/data/managers/discovery_manager.dart';
 import 'package:open_control/data/managers/remote_control_manager.dart';
 import 'package:open_control/data/managers/server_settings_manager.dart';
 import 'package:open_control/data/sources/connection_store.dart';
+import 'package:open_control/data/sources/files_source.dart';
 import 'package:open_control/data/sources/settings_source.dart';
 
 final di = GetIt.instance;
@@ -26,4 +27,6 @@ Future<void> configureDependencies() async {
   di.registerFactory<ServerSettingsManager>(
     () => ServerSettingsManager(di<SettingsSource>()),
   );
+
+  di.registerLazySingleton<FilesSource>(FilesSource.new);
 }

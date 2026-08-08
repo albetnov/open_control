@@ -1,6 +1,7 @@
 enum AppRoute {
   connection('/'),
-  remote('/remote');
+  remote('/remote'),
+  files('/remote/files');
 
   const AppRoute(this.path);
 

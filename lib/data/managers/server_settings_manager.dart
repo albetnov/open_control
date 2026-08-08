@@ -1,9 +1,17 @@
 import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
+import 'package:open_control/data/models/settings_state.dart';
 import 'package:open_control/data/sources/settings_source.dart';
 
 typedef ServerTarget = ({String host, int port});
-typedef SetPasswordTarget = ({String host, int port, String password});
+typedef UpdateTarget = ({
+  String host,
+  int port,
+  String? obsPassword,
+  String? fsRoot,
+});
+
+const _empty = SettingsState(obsPasswordSet: false, fsRoot: '');
 
 class ServerSettingsManager {
   ServerSettingsManager(this._source);
@@ -11,29 +19,30 @@ class ServerSettingsManager {
   final SettingsSource _source;
 
   /// null until the first fetch completes for the current target.
-  final passwordSet = ValueNotifier<bool?>(null);
+  final state = ValueNotifier<SettingsState?>(null);
 
-  late final fetchCommand = Command.createAsync<ServerTarget, bool>(
+  late final fetchCommand = Command.createAsync<ServerTarget, SettingsState>(
     (target) async {
-      final isSet = await _source.fetchPasswordSet(target.host, target.port);
-      passwordSet.value = isSet;
-      return isSet;
+      final result = await _source.fetch(target.host, target.port);
+      state.value = result;
+      return result;
     },
-    initialValue: false,
+    initialValue: _empty,
     errorFilter: const GlobalIfNoLocalErrorFilter(),
   );
 
-  late final saveCommand = Command.createAsync<SetPasswordTarget, bool>(
+  late final saveCommand = Command.createAsync<UpdateTarget, SettingsState>(
     (target) async {
-      final isSet = await _source.setPassword(
+      final result = await _source.update(
         target.host,
         target.port,
-        target.password,
+        obsPassword: target.obsPassword,
+        fsRoot: target.fsRoot,
       );
-      passwordSet.value = isSet;
-      return isSet;
+      state.value = result;
+      return result;
     },
-    initialValue: false,
+    initialValue: _empty,
     errorFilter: const GlobalIfNoLocalErrorFilter(),
   );
 }

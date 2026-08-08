@@ -11,8 +11,9 @@ class ConnectionStore {
     final raw = prefs.getStringList(_key) ?? const [];
     return raw
         .map(
-          (json) =>
-              ServerConnection.fromJson(jsonDecode(json) as Map<String, dynamic>),
+          (json) => ServerConnection.fromJson(
+            jsonDecode(json) as Map<String, dynamic>,
+          ),
         )
         .toList();
   }

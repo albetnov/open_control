@@ -86,8 +86,9 @@ class _LiveServerWebSocketSession implements ServerWebSocketSession {
     try {
       await channel.ready.timeout(
         _timeout,
-        onTimeout: () =>
-            throw ServerConnectionException('Timed out connecting to $host:$port'),
+        onTimeout: () => throw ServerConnectionException(
+          'Timed out connecting to $host:$port',
+        ),
       );
       final helloData = await hello.future.timeout(
         _timeout,

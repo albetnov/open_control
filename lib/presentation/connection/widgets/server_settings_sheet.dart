@@ -10,6 +10,12 @@ import 'package:watch_it/watch_it.dart';
 /// A password often has to be configured on the server *before* a connection
 /// through its OBS relay can succeed, so this lives on the connection screen
 /// rather than behind an active session.
+///
+/// Password and media-folder saves are deliberately two separate actions
+/// (Save Password / Save Folder) even though both patch the same /settings
+/// resource underneath: combining them into one save would mean leaving the
+/// password field blank while just updating the folder silently clears the
+/// password, since blank is this sheet's "clear it" signal.
 class ServerSettingsSheet extends StatefulWidget
     with WatchItStatefulWidgetMixin {
   const ServerSettingsSheet({super.key});
@@ -20,10 +26,12 @@ class ServerSettingsSheet extends StatefulWidget
 
 class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
   final _passwordController = TextEditingController();
+  final _fsRootController = TextEditingController();
 
   @override
   void dispose() {
     _passwordController.dispose();
+    _fsRootController.dispose();
     super.dispose();
   }
 
@@ -41,7 +49,7 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
       }
     });
 
-    final passwordSet = watchValue((ServerSettingsManager m) => m.passwordSet);
+    final state = watchValue((ServerSettingsManager m) => m.state);
     final isFetching = watchValue(
       (ServerSettingsManager m) => m.fetchCommand.isRunning,
     );
@@ -49,6 +57,14 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
       (ServerSettingsManager m) => m.saveCommand.isRunning,
     );
 
+    registerHandler(
+      select: (ServerSettingsManager m) => m.state,
+      handler: (context, state, _) {
+        if (state != null && _fsRootController.text.isEmpty) {
+          _fsRootController.text = state.fsRoot;
+        }
+      },
+    );
     registerHandler(
       select: (ServerSettingsManager m) => m.fetchCommand.errors,
       handler: (context, error, _) {
@@ -68,13 +84,18 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
       },
     );
 
-    final statusText = isFetching
+    final passwordStatus = isFetching
         ? 'Checking…'
-        : switch (passwordSet) {
+        : switch (state?.obsPasswordSet) {
             null => 'Status unknown',
             true => 'Password set',
             false => 'No password set',
           };
+    final folderStatus = isFetching
+        ? 'Checking…'
+        : (state?.fsRoot.isNotEmpty ?? false)
+        ? 'Current: ${state!.fsRoot}'
+        : 'Not configured';
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -109,14 +130,7 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
                   ),
                 ],
               ),
-              Text(
-                'Sets the OBS websocket password on the server itself. '
-                'The app never stores or sends it.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -159,23 +173,68 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Text(
-                statusText,
+                'OBS Password',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                passwordStatus,
                 style: Theme.of(
                   context,
-                ).textTheme.bodyMedium?.copyWith(color: context.mutedColor),
+                ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'OBS Password',
+                  labelText: 'Password',
                   hintText: 'Leave blank to clear',
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: isSaving
+                      ? null
+                      : submit((form) {
+                          manager.saveCommand((
+                            host: form.host,
+                            port: form.port,
+                            obsPassword: _passwordController.text,
+                            fsRoot: null,
+                          ));
+                          _passwordController.clear();
+                        }),
+                  child: const Text('Save Password'),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Divider(color: context.borderColor),
+              const SizedBox(height: 16),
+              Text(
+                'Media Folder',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                folderStatus,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: context.mutedColor),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _fsRootController,
+                decoration: const InputDecoration(
+                  labelText: 'Folder path on the server',
+                  hintText: '/home/streamer/Videos',
+                ),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -185,9 +244,9 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
                           manager.saveCommand((
                             host: form.host,
                             port: form.port,
-                            password: _passwordController.text,
+                            obsPassword: null,
+                            fsRoot: _fsRootController.text,
                           ));
-                          _passwordController.clear();
                         }),
                   child: isSaving
                       ? const SizedBox(
@@ -195,7 +254,7 @@ class _ServerSettingsSheetState extends State<ServerSettingsSheet> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save'),
+                      : const Text('Save Folder'),
                 ),
               ),
             ],
