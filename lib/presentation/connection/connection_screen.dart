@@ -6,6 +6,7 @@ import 'package:open_control/data/managers/connection_manager.dart';
 import 'package:open_control/data/managers/discovery_manager.dart';
 import 'package:open_control/presentation/connection/widgets/connection_list_item.dart';
 import 'package:open_control/presentation/connection/widgets/new_connection_form.dart';
+import 'package:open_control/presentation/connection/widgets/server_settings_sheet.dart';
 import 'package:watch_it/watch_it.dart';
 
 class ConnectionScreen extends WatchingWidget {
@@ -55,9 +56,24 @@ class ConnectionScreen extends WatchingWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 20),
           children: [
-            Text(
-              'Open Control',
-              style: Theme.of(context).textTheme.headlineSmall,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Open Control',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => const ServerSettingsSheet(),
+                  ),
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: 'Server Settings',
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(

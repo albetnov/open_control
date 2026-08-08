@@ -2,7 +2,9 @@ import 'package:get_it/get_it.dart';
 import 'package:open_control/data/managers/connection_manager.dart';
 import 'package:open_control/data/managers/discovery_manager.dart';
 import 'package:open_control/data/managers/remote_control_manager.dart';
+import 'package:open_control/data/managers/server_settings_manager.dart';
 import 'package:open_control/data/sources/connection_store.dart';
+import 'package:open_control/data/sources/settings_source.dart';
 
 final di = GetIt.instance;
 
@@ -19,4 +21,9 @@ Future<void> configureDependencies() async {
   );
 
   di.registerLazySingleton<DiscoveryManager>(DiscoveryManager.new);
+
+  di.registerLazySingleton<SettingsSource>(SettingsSource.new);
+  di.registerFactory<ServerSettingsManager>(
+    () => ServerSettingsManager(di<SettingsSource>()),
+  );
 }
