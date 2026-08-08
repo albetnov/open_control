@@ -16,6 +16,7 @@ import (
 // callers can patch a subset without touching the others.
 type Settings struct {
 	ObsPassword string `json:"obsPassword"`
+	FsRoot      string `json:"fsRoot"`
 }
 
 // Update describes a partial change to Settings. A nil field is left
@@ -23,6 +24,7 @@ type Settings struct {
 // applied.
 type Update struct {
 	ObsPassword *string
+	FsRoot      *string
 }
 
 type Store struct {
@@ -75,6 +77,12 @@ func (s *Store) HasObsPassword() bool {
 	return s.ObsPassword() != ""
 }
 
+func (s *Store) FsRoot() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.current.FsRoot
+}
+
 // Update applies u's non-nil fields and persists the result to disk.
 func (s *Store) Update(u Update) error {
 	s.mu.Lock()
@@ -82,6 +90,9 @@ func (s *Store) Update(u Update) error {
 
 	if u.ObsPassword != nil {
 		s.current.ObsPassword = *u.ObsPassword
+	}
+	if u.FsRoot != nil {
+		s.current.FsRoot = *u.FsRoot
 	}
 
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o700); err != nil {

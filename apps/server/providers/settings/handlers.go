@@ -2,12 +2,21 @@ package settings
 
 import (
 	"log"
+	"os"
 
 	fiber "github.com/gofiber/fiber/v3"
 )
 
 type updateBody struct {
 	ObsPassword *string `json:"obsPassword"`
+	FsRoot      *string `json:"fsRoot"`
+}
+
+func stateJSON(store *Store) fiber.Map {
+	return fiber.Map{
+		"obsPasswordSet": store.HasObsPassword(),
+		"fsRoot":         store.FsRoot(),
+	}
 }
 
 // RegisterRoutes wires a single /settings resource: GET reads current state,
@@ -15,7 +24,7 @@ type updateBody struct {
 // adding a new setting later doesn't mean adding a new route.
 func RegisterRoutes(router fiber.Router, store *Store) {
 	router.Get("/settings", func(c fiber.Ctx) error {
-		return c.JSON(fiber.Map{"obsPasswordSet": store.HasObsPassword()})
+		return c.JSON(stateJSON(store))
 	})
 
 	router.Put("/settings", func(c fiber.Ctx) error {
@@ -24,11 +33,18 @@ func RegisterRoutes(router fiber.Router, store *Store) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
 		}
 
-		if err := store.Update(Update{ObsPassword: body.ObsPassword}); err != nil {
+		if body.FsRoot != nil && *body.FsRoot != "" {
+			info, err := os.Stat(*body.FsRoot)
+			if err != nil || !info.IsDir() {
+				return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "fsRoot must be an existing directory"})
+			}
+		}
+
+		if err := store.Update(Update{ObsPassword: body.ObsPassword, FsRoot: body.FsRoot}); err != nil {
 			log.Println("settings: could not save:", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.JSON(fiber.Map{"obsPasswordSet": store.HasObsPassword()})
+		return c.JSON(stateJSON(store))
 	})
 }

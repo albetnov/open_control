@@ -7,6 +7,7 @@ import (
 	websocket "github.com/gofiber/contrib/v3/websocket"
 	fiber "github.com/gofiber/fiber/v3"
 
+	"open_control_server/providers/fs"
 	"open_control_server/providers/mdns"
 	"open_control_server/providers/obs"
 	"open_control_server/providers/settings"
@@ -24,6 +25,8 @@ func setupApp() *fiber.App {
 	settings.RegisterRoutes(app, settingsStore)
 
 	obs.RegisterProxyRoute(app, "ws://localhost:4455", settingsStore)
+
+	fs.RegisterRoutes(app, settingsStore, &fs.Pool{})
 
 	mdns.Advertise(app, httpPort)
 
